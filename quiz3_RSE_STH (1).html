@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz 3 — Et nous, on fait quoi ? | STH</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-dark: #1A5C38; --green-mid: #2E7D4F; --green-light: #4CAF77;
+    --green-pale: #C8DFC8; --green-ultra-pale: #E8F4EE; --cream: #F7F4EF;
+    --white: #FFFFFF; --dark: #1C1C1C; --gray: #666;
+    --correct: #1A7A4A; --correct-bg: #D4EDDA; --wrong: #C0392B; --wrong-bg: #FADBD8;
+    --shadow: 0 4px 24px rgba(26,92,56,0.10); --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); min-height: 100vh; color: var(--dark); background-image: radial-gradient(circle at 10% 10%, rgba(46,125,79,0.06) 0%, transparent 50%), radial-gradient(circle at 90% 90%, rgba(26,92,56,0.08) 0%, transparent 50%); }
+  .header { background: linear-gradient(135deg, #04342C 0%, #1A5C38 60%, var(--green-mid) 100%); padding: 28px 24px 24px; text-align: center; position: relative; overflow: hidden; }
+  .header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 160px; height: 160px; background: rgba(255,255,255,0.06); border-radius: 50%; }
+  .header-badge { display: inline-block; background: rgba(255,255,255,0.15); color: var(--green-pale); font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; padding: 5px 14px; border-radius: 20px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.2); }
+  .header h1 { font-family: 'Syne', sans-serif; font-size: clamp(18px, 4vw, 26px); font-weight: 800; color: var(--white); line-height: 1.2; margin-bottom: 6px; }
+  .header p { color: var(--green-pale); font-size: 13px; font-weight: 300; }
+  .progress-wrap { padding: 20px 20px 0; max-width: 680px; margin: 0 auto; }
+  .progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .progress-label { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--green-mid); text-transform: uppercase; letter-spacing: 1px; }
+  .progress-q-dots { display: flex; gap: 5px; }
+  .q-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green-pale); transition: background 0.3s; }
+  .q-dot.done { background: var(--green-mid); }
+  .q-dot.active { background: var(--green-light); box-shadow: 0 0 0 2px rgba(76,175,119,0.3); }
+  .progress-bar-bg { height: 6px; background: var(--green-pale); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green-mid), var(--green-light)); border-radius: 3px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); width: 0%; }
+  .card-wrap { max-width: 680px; margin: 20px auto; padding: 0 16px 40px; }
+  .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; animation: slideIn 0.4s cubic-bezier(0.4,0,0.2,1); }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .card-top { background: var(--green-ultra-pale); padding: 20px 24px 18px; border-bottom: 1px solid var(--green-pale); display: flex; align-items: flex-start; gap: 14px; }
+  .q-number { background: var(--green-mid); color: var(--white); font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .q-meta { flex: 1; }
+  .q-tag { font-size: 10px; font-weight: 600; color: var(--green-mid); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .q-text { font-family: 'Syne', sans-serif; font-size: clamp(14px, 2.5vw, 17px); font-weight: 700; color: var(--dark); line-height: 1.4; }
+  .multi-badge { display: inline-block; background: #FAC775; color: #412402; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-top: 6px; }
+  .timer-wrap { padding: 14px 24px 0; display: flex; align-items: center; gap: 10px; }
+  .timer-label { font-size: 11px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+  .timer-bar-bg { flex: 1; height: 5px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .timer-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green-light), var(--green-mid)); border-radius: 3px; transition: width 1s linear, background 0.5s; }
+  .timer-bar-fill.urgent { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+  .timer-num { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; color: var(--green-dark); min-width: 28px; text-align: right; }
+  .timer-num.urgent { color: var(--wrong); }
+  .options { padding: 18px 24px 24px; display: flex; flex-direction: column; gap: 10px; }
+  .option { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: 12px; border: 2px solid var(--green-pale); background: var(--white); cursor: pointer; transition: all 0.2s; text-align: left; width: 100%; position: relative; overflow: hidden; }
+  .option::before { content: ''; position: absolute; inset: 0; background: var(--green-ultra-pale); opacity: 0; transition: opacity 0.2s; }
+  .option:hover::before { opacity: 1; }
+  .option:hover { border-color: var(--green-light); transform: translateX(3px); }
+  .option.selected { border-color: var(--green-mid); background: var(--green-ultra-pale); }
+  .option.selected .option-letter { background: var(--green-mid); color: white; }
+  .option.selected:hover { transform: none; }
+  .option-letter { width: 28px; height: 28px; border-radius: 8px; background: var(--green-ultra-pale); color: var(--green-dark); font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; position: relative; z-index: 1; }
+  .option-text { font-size: 14px; color: var(--dark); line-height: 1.5; padding-top: 4px; position: relative; z-index: 1; }
+  .hint { padding: 0 24px 14px; font-size: 12px; color: var(--gray); font-style: italic; text-align: center; }
+  .btn-next { display: none; margin: 0 24px 24px; width: calc(100% - 48px); padding: 14px; background: linear-gradient(135deg, var(--green-dark), var(--green-mid)); color: white; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; letter-spacing: 0.5px; transition: all 0.2s; box-shadow: 0 4px 14px rgba(26,92,56,0.25); }
+  .btn-next:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,92,56,0.35); }
+  .btn-skip { display: block; margin: 0 24px 24px; width: calc(100% - 48px); padding: 10px; background: transparent; color: var(--gray); font-family: 'DM Sans', sans-serif; font-size: 13px; border: 1.5px dashed #ddd; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+  .btn-skip:hover { border-color: var(--green-pale); color: var(--green-mid); background: var(--green-ultra-pale); }
+  .results { display: none; max-width: 680px; margin: 20px auto; padding: 0 16px 60px; animation: slideIn 0.4s ease; }
+  .results-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .results-top { background: linear-gradient(135deg, #04342C, #1A5C38); padding: 32px 28px; text-align: center; position: relative; overflow: hidden; }
+  .results-top::before { content: ''; position: absolute; top: -50px; right: -50px; width: 180px; height: 180px; background: rgba(255,255,255,0.06); border-radius: 50%; }
+  .results-emoji { font-size: 48px; margin-bottom: 10px; }
+  .results-title { font-family: 'Syne', sans-serif; font-size: clamp(16px, 3vw, 22px); font-weight: 800; color: white; margin-bottom: 6px; line-height: 1.3; }
+  .results-subtitle { color: var(--green-pale); font-size: 13px; margin-bottom: 20px; }
+  .score-circle { width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 3px solid rgba(255,255,255,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto; }
+  .score-num { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: white; line-height: 1; }
+  .score-denom { color: var(--green-pale); font-size: 13px; margin-top: 3px; }
+  .score-msg { margin: 20px 24px 0; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; text-align: center; line-height: 1.5; }
+  .score-msg.great { background: var(--correct-bg); color: #0d3d22; border-left: 3px solid var(--correct); }
+  .score-msg.ok { background: #FFF3CD; color: #856404; border-left: 3px solid #F5A623; }
+  .score-msg.low { background: var(--wrong-bg); color: #5c1a14; border-left: 3px solid var(--wrong); }
+  .results-body { padding: 24px; }
+  .results-section-title { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--green-mid); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--green-pale); }
+  .result-item { margin-bottom: 14px; border-radius: 10px; overflow: hidden; border: 1.5px solid #eee; }
+  .result-item.correct-item { border-color: #b7dfca; }
+  .result-item.wrong-item { border-color: #f1b8b3; }
+  .result-item.skipped-item { border-color: #ddd; }
+  .result-item-q { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: #fafafa; }
+  .result-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .result-q-text { font-size: 13px; font-weight: 600; color: var(--dark); line-height: 1.4; flex: 1; }
+  .result-answers { padding: 10px 14px; font-size: 12px; line-height: 1.7; color: #444; }
+  .ans-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 2px; }
+  .ans-label { font-weight: 700; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+  .ans-label.your { color: var(--wrong); }
+  .ans-label.correct-lbl { color: var(--correct); }
+  .ans-label.skipped-lbl { color: var(--gray); }
+  .ans-text { flex: 1; }
+  .result-explanation { padding: 10px 14px; font-size: 12px; line-height: 1.6; color: #555; border-top: 1px solid #eee; background: var(--green-ultra-pale); font-style: italic; }
+  .result-explanation::before { content: '💡 '; }
+  .btn-restart { display: block; width: 100%; margin-top: 20px; padding: 14px; background: linear-gradient(135deg, var(--green-dark), var(--green-mid)); color: white; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; letter-spacing: 0.5px; transition: all 0.2s; box-shadow: 0 4px 14px rgba(26,92,56,0.25); text-align: center; }
+  .btn-restart:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,92,56,0.35); }
+  .sthlabel { text-align: center; padding: 16px; font-size: 11px; color: var(--gray); letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-badge">Stade Toulousain Handisport — Masterclass RSE</div>
+  <h1>Quiz 3 — Et nous, on fait quoi ?</h1>
+  <p>6 questions · Niveau difficile · Les bonnes réponses s'affichent à la fin</p>
+</div>
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-top">
+    <span class="progress-label" id="progressLabel">Question 1 / 6</span>
+    <div class="progress-q-dots" id="qDots"></div>
+  </div>
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+</div>
+<div class="card-wrap" id="quizArea">
+  <div class="card" id="questionCard">
+    <div class="card-top">
+      <div class="q-number" id="qNumber">1</div>
+      <div class="q-meta">
+        <div class="q-tag" id="qTag">Question 1 sur 6</div>
+        <div class="q-text" id="qText"></div>
+        <div class="multi-badge" id="multiBadge" style="display:none">⚠️ Plusieurs bonnes réponses</div>
+      </div>
+    </div>
+    <div class="timer-wrap">
+      <span class="timer-label">Temps</span>
+      <div class="timer-bar-bg"><div class="timer-bar-fill" id="timerBar"></div></div>
+      <span class="timer-num" id="timerNum">30</span>
+    </div>
+    <div class="options" id="optionsContainer"></div>
+    <p class="hint" id="hintText">Sélectionnez une réponse pour continuer</p>
+    <button class="btn-next" id="btnNext" onclick="nextQuestion()">Question suivante →</button>
+    <button class="btn-skip" id="btnSkip" onclick="skipQuestion()">Passer cette question</button>
+  </div>
+</div>
+<div class="results" id="resultsArea">
+  <div class="results-card">
+    <div class="results-top">
+      <div class="results-emoji" id="resultsEmoji">🎯</div>
+      <div class="results-title" id="resultsTitle">Quiz terminé !</div>
+      <div class="results-subtitle">Masterclass RSE — Stade Toulousain Handisport</div>
+      <div class="score-circle">
+        <div class="score-num" id="scoreNum">0</div>
+        <div class="score-denom" id="scoreDenom">/ 6</div>
+      </div>
+    </div>
+    <div class="score-msg" id="scoreMsg"></div>
+    <div class="results-body">
+      <div class="results-section-title">Récapitulatif — Bonnes réponses & explications</div>
+      <div id="resultsList"></div>
+      <button class="btn-restart" onclick="restart()">🔄 Recommencer le quiz</button>
+    </div>
+  </div>
+  <div class="sthlabel">Stade Toulousain Handisport · Masterclass RSE</div>
+</div>
+<script>
+const questions = [
+  {
+    q: "Parmi ces situations, laquelle pourrait exposer le STH à une sanction légale concrète dès aujourd'hui ?",
+    options: ["Ne pas avoir de charte environnementale affichée dans nos locaux","Ne pas avoir de label RSE officiel reconnu","Stocker les données personnelles de nos licenciés sans leur consentement documenté","Ne pas avoir publié de rapport d'impact cette année"],
+    correct:[2], time:30, multi:false,
+    feedback:"C — le RGPD ! Seule obligation légale parmi ces 4. Stocker des données sans consentement documenté expose directement à une sanction de la CNIL. Au STH on gère des données de licenciés, de mineurs et de participants à nos prestations — trois catégories particulièrement sensibles. Les trois autres sont importantes mais aucune n'est sanctionnable juridiquement."
+  },
+  {
+    q: "Quels sont les deux piliers RSE sur lesquels le STH est objectivement le plus en avance aujourd'hui ?",
+    options: ["Gouvernance — CA identifié, organisation horizontale, décisions collégiales","Environnement — covoiturage, mutualisation du matériel","Relations et conditions de travail — bien-être, formation, flexibilité","Protection des consommateurs — qualité de nos prestations de sensibilisation"],
+    correct:[0,2], time:45, multi:true,
+    feedback:"A et C ! Gouvernance et Relations de travail sont nos deux piliers les plus solides — pratiques existantes, bien installées, reconnues. L'environnement (B) existe mais reste informel et limité par nos contraintes d'achat. La protection des consommateurs (D) est un vrai angle mort — pas de procédure de réclamation formalisée, RGPD non documenté."
+  },
+  {
+    q: "Une entreprise cliente se plaint que notre prestation de sensibilisation au handicap ne correspond pas au programme annoncé. Vers quelle procédure formalisée peut-elle se tourner au STH aujourd'hui ?",
+    options: ["Le règlement intérieur de l'association qui encadre nos prestations","La procédure de médiation partenariale formalisée","Le dispositif de réclamation clients avec délai de traitement garanti","Aucune procédure formalisée — elle passerait directement par la direction sans traçabilité"],
+    correct:[3], time:30, multi:false,
+    feedback:"Aucune procédure formalisée — et c'est un vrai angle mort. La bonne volonté existe mais il n'y a pas de procédure écrite, de délai garanti, ni de suivi traçable. Pour des prestations vendues à des entreprises, c'est un risque commercial et réputationnel concret. Mettre en place une procédure simple est rapide et peu coûteux."
+  },
+  {
+    q: "Parmi ces actions, lesquelles le STH pourrait lancer SANS budget supplémentaire dans les 3 prochains mois ?",
+    options: ["Rédiger une charte de valeurs et d'engagements RSE","Mettre en place un questionnaire de satisfaction pour nos licenciés","Réaliser un bilan carbone complet avec un cabinet spécialisé","Formaliser une procédure simple de réclamation pour nos clients entreprises"],
+    correct:[0,1,3], time:45, multi:true,
+    feedback:"A, B et D ! Ces trois actions ne coûtent rien — elles mobilisent du temps et de la réflexion collective, pas de budget. Le bilan carbone (C) nécessite un outil ou un cabinet spécialisé — c'est une action réelle mais qui demande un investissement. C'est le message clé : beaucoup d'actions RSE sont gratuites !"
+  },
+  {
+    q: "Quelles sont les deux actions qui auraient le plus d'impact immédiat sur la crédibilité du STH auprès de ses financeurs publics ?",
+    options: ["Publier un rapport d'impact annuel même simple","Installer des panneaux de tri sélectif dans nos locaux","Rédiger et adopter une charte de valeurs et d'engagements","Candidater à un label RSE reconnu"],
+    correct:[0,2], time:45, multi:true,
+    feedback:"A et C ! Le rapport d'impact et la charte de valeurs sont les deux documents qu'un financeur public (CD31, Région Occitanie) veut voir pour renouveler une subvention. Le label (D, piège fort) coûte cher et prend du temps — et n'est pas exigé. Les panneaux de tri (B) sont une bonne action mais ne pèsent pas sur une décision de financement."
+  },
+  {
+    q: "Un de nos partenaires financeurs nous demande demain de prouver notre engagement RSE. On lui envoie quoi ?",
+    options: ["Notre projet associatif — il montre déjà notre mission sociale et nos valeurs","Notre bilan comptable — il prouve notre bonne gestion et notre transparence financière","Rien de formalisé — on n'a pas encore de document RSE dédié à envoyer","Notre règlement intérieur et nos statuts associatifs"],
+    correct:[2], time:30, multi:false,
+    feedback:"Rien de formalisé — et c'est inconfortable à admettre mais c'est la vérité. Le projet associatif (piège fort) parle de notre mission, pas de nos pratiques RSE structurées. Un financeur qui demande une preuve RSE veut un rapport d'impact, une charte de valeurs, des indicateurs suivis — pas nos statuts. C'est exactement pourquoi on est là aujourd'hui !"
+  }
+];
+const labels=['A','B','C','D'];
+let current=0,score=0,answered=false,timer=null,timeLeft=0,userAnswers=[],selectedIdxs=[];
+function buildDots(){const d=document.getElementById('qDots');d.innerHTML='';questions.forEach((_,i)=>{const el=document.createElement('div');el.className='q-dot'+(i===0?' active':'');el.id=`dot-${i}`;d.appendChild(el);});}
+function updateDots(){questions.forEach((_,i)=>{const d=document.getElementById(`dot-${i}`);d.className='q-dot';if(i<current)d.classList.add('done');else if(i===current)d.classList.add('active');});}
+function init(){current=0;score=0;answered=false;userAnswers=[];selectedIdxs=[];document.getElementById('quizArea').style.display='block';document.getElementById('progressWrap').style.display='block';document.getElementById('resultsArea').style.display='none';buildDots();loadQuestion();}
+function loadQuestion(){
+  answered=false;selectedIdxs=[];
+  const q=questions[current];
+  document.getElementById('qNumber').textContent=current+1;
+  document.getElementById('qTag').textContent=`Question ${current+1} sur ${questions.length}`;
+  document.getElementById('qText').textContent=q.q;
+  document.getElementById('progressLabel').textContent=`Question ${current+1} / ${questions.length}`;
+  document.getElementById('progressFill').style.width=`${(current/questions.length)*100}%`;
+  document.getElementById('btnNext').style.display='none';
+  document.getElementById('btnSkip').style.display='block';
+  document.getElementById('multiBadge').style.display=q.multi?'inline-block':'none';
+  document.getElementById('hintText').textContent=q.multi?'Sélectionnez toutes les bonnes réponses puis cliquez sur Suivant':'Sélectionnez une réponse pour continuer';
+  updateDots();
+  const c=document.getElementById('optionsContainer');c.innerHTML='';
+  q.options.forEach((opt,i)=>{const btn=document.createElement('button');btn.className='option';btn.id=`opt-${i}`;btn.innerHTML=`<span class="option-letter">${labels[i]}</span><span class="option-text">${opt}</span>`;btn.onclick=()=>selectAnswer(i);c.appendChild(btn);});
+  clearInterval(timer);timeLeft=q.time;updateTimer();
+  timer=setInterval(()=>{timeLeft--;updateTimer();if(timeLeft<=0){clearInterval(timer);if(!answered)autoSkip();}},1000);
+  document.getElementById('questionCard').style.animation='none';void document.getElementById('questionCard').offsetWidth;document.getElementById('questionCard').style.animation='slideIn 0.4s cubic-bezier(0.4,0,0.2,1)';
+}
+function updateTimer(){const q=questions[current];const pct=(timeLeft/q.time)*100;const bar=document.getElementById('timerBar'),num=document.getElementById('timerNum');bar.style.width=pct+'%';num.textContent=Math.max(0,timeLeft);if(timeLeft<=8){bar.classList.add('urgent');num.classList.add('urgent');}else{bar.classList.remove('urgent');num.classList.remove('urgent');}}
+function selectAnswer(idx){
+  if(answered)return;
+  const q=questions[current];
+  if(q.multi){
+    const opt=document.getElementById(`opt-${idx}`);const pos=selectedIdxs.indexOf(idx);
+    if(pos===-1){selectedIdxs.push(idx);opt.classList.add('selected');opt.querySelector('.option-letter').style.background='var(--green-mid)';opt.querySelector('.option-letter').style.color='white';}
+    else{selectedIdxs.splice(pos,1);opt.classList.remove('selected');opt.querySelector('.option-letter').style.background='';opt.querySelector('.option-letter').style.color='';}
+    document.getElementById('btnNext').style.display=selectedIdxs.length>0?'block':'none';
+    document.getElementById('btnSkip').style.display=selectedIdxs.length>0?'none':'block';
+  }else{
+    document.querySelectorAll('.option').forEach(o=>{o.classList.remove('selected');o.querySelector('.option-letter').style.background='';o.querySelector('.option-letter').style.color='';});
+    selectedIdxs=[idx];document.getElementById(`opt-${idx}`).classList.add('selected');
+    document.getElementById('btnNext').style.display='block';document.getElementById('btnSkip').style.display='none';
+    document.getElementById('hintText').textContent='✓ Réponse sélectionnée — cliquez sur Suivant pour continuer';
+  }
+}
+function autoSkip(){answered=true;userAnswers.push({q:questions[current].q,selected:[],correct:questions[current].correct,options:questions[current].options,feedback:questions[current].feedback,multi:questions[current].multi,isCorrect:false,skipped:true});current++;if(current<questions.length)loadQuestion();else showResults();}
+function skipQuestion(){clearInterval(timer);answered=true;userAnswers.push({q:questions[current].q,selected:[],correct:questions[current].correct,options:questions[current].options,feedback:questions[current].feedback,multi:questions[current].multi,isCorrect:false,skipped:true});current++;if(current<questions.length)loadQuestion();else showResults();}
+function nextQuestion(){
+  if(selectedIdxs.length===0)return;clearInterval(timer);answered=true;
+  const q=questions[current];
+  const isCorrect=JSON.stringify([...selectedIdxs].sort())===JSON.stringify([...q.correct].sort());
+  if(isCorrect)score++;
+  userAnswers.push({q:q.q,selected:[...selectedIdxs],correct:q.correct,options:q.options,feedback:q.feedback,multi:q.multi,isCorrect,skipped:false});
+  current++;if(current<questions.length)loadQuestion();else showResults();
+}
+function showResults(){
+  clearInterval(timer);document.getElementById('progressFill').style.width='100%';
+  document.getElementById('quizArea').style.display='none';document.getElementById('progressWrap').style.display='none';document.getElementById('resultsArea').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+  const total=questions.length,pct=score/total;
+  let emoji,title,msgClass,msg;
+  if(pct>=0.83){emoji='🏆';title=`Excellent ! ${score}/${total} bonnes réponses`;msgClass='great';msg='Vous connaissez vraiment bien la situation RSE du STH. Vous êtes prêts à construire la politique ensemble !';}
+  else if(pct>=0.5){emoji='💪';title=`Bon score ! ${score}/${total} bonnes réponses`;msgClass='ok';msg='Bonne connaissance de l\'association ! Quelques angles morts identifiés — regardez les explications ci-dessous.';}
+  else{emoji='🌱';title=`${score}/${total} bonnes réponses`;msgClass='low';msg='Ce quiz était le plus difficile — et c\'est normal. Ces questions révèlent nos vrais angles morts. Place maintenant à l\'action !';}
+  document.getElementById('resultsEmoji').textContent=emoji;document.getElementById('resultsTitle').textContent=title;
+  document.getElementById('scoreNum').textContent=score;document.getElementById('scoreDenom').textContent=`/ ${total}`;
+  const msgEl=document.getElementById('scoreMsg');msgEl.className=`score-msg ${msgClass}`;msgEl.textContent=msg;
+  const list=document.getElementById('resultsList');list.innerHTML='';
+  userAnswers.forEach((a,i)=>{
+    const correctText=a.correct.map(c=>`${labels[c]}. ${a.options[c]}`).join(' / ');
+    const selectedText=a.selected.length>0?a.selected.map(s=>`${labels[s]}. ${a.options[s]}`).join(' / '):null;
+    let icon,itemClass,answersHtml;
+    if(a.skipped){icon='⏭️';itemClass='skipped-item';answersHtml=`<div class="ans-row"><span class="ans-label skipped-lbl">Passée</span></div><div class="ans-row"><span class="ans-label correct-lbl">✓ Bonne réponse :</span><span class="ans-text">${correctText}</span></div>`;}
+    else if(a.isCorrect){icon='✅';itemClass='correct-item';answersHtml=`<div class="ans-row"><span class="ans-label correct-lbl">✓ Votre réponse :</span><span class="ans-text">${selectedText}</span></div>`;}
+    else{icon='❌';itemClass='wrong-item';answersHtml=`<div class="ans-row"><span class="ans-label your">✗ Votre réponse :</span><span class="ans-text">${selectedText||'Aucune'}</span></div><div class="ans-row"><span class="ans-label correct-lbl">✓ Bonne réponse :</span><span class="ans-text">${correctText}</span></div>`;}
+    list.innerHTML+=`<div class="result-item ${itemClass}"><div class="result-item-q"><span class="result-icon">${icon}</span><span class="result-q-text">${i+1}. ${a.q}</span></div><div class="result-answers">${answersHtml}</div><div class="result-explanation">${a.feedback}</div></div>`;
+  });
+}
+function restart(){init();window.scrollTo({top:0,behavior:'smooth'});}
+init();
+</script>
+</body>
+</html>
